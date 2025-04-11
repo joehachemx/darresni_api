@@ -3,6 +3,9 @@ const cors = require('cors');
 const morgan = require('morgan');
 require('dotenv').config();
 
+const routes = require('./routes');
+const errorHandler = require('./middlewares/error.middleware');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -12,15 +15,10 @@ app.use(morgan('dev'));
 app.use(express.json());
 
 // Routes
-app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the API!' });
-});
+app.use('/api', routes);
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
+app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
