@@ -5,12 +5,14 @@ const router = express.Router();
 const userRoutes = require('./user.routes');
 const exerciseRoutes = require('./exercise.routes');
 const performanceLogRoutes = require('./performanceLog.routes');
+const adminRoutes = require('./admin.routes');
 
 // Version 1 routes
 const v1Router = express.Router();
 v1Router.use('/users', userRoutes);
 v1Router.use('/exercises', exerciseRoutes);
 v1Router.use('/performance-logs', performanceLogRoutes);
+v1Router.use('/admin', adminRoutes);
 
 // Mount versioned routes
 router.use('/v1', v1Router);
