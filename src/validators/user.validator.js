@@ -5,8 +5,10 @@ const signupSchema = Joi.object({
   lastName: Joi.string().required().min(2).max(50),
   email: Joi.string().email().required(),
   password: Joi.string().required().min(6),
-  phoneNumber: Joi.string().pattern(/^[0-9]{10}$/).required(),
-  dob: Joi.date().required()
+  phoneNumber: Joi.string().pattern(/^\+?[0-9\s\-()]{7,20}$/).required(),
+  dob: Joi.date().required(),
+  streak: Joi.number().integer().min(0).default(0),
+  isAdmin: Joi.boolean().default(false)
 });
 
 const loginSchema = Joi.object({

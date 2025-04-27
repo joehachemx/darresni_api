@@ -1,5 +1,7 @@
 const Exercise = require('../models/exercise.model');
 const { successResponse, errorResponse } = require('../utils/response');
+const PerformanceLog = require('../models/performanceLog.model');
+const { correctExercise } = require('../services/openai.service');
 
 exports.createExercise = async (req, res) => {
   try {
@@ -13,7 +15,7 @@ exports.createExercise = async (req, res) => {
 
 exports.getAllExercises = async (req, res) => {
   try {
-    const exercises = await Exercise.findAll();
+    const exercises = await Exercise.findAll(req.user?.id);
     successResponse(res, exercises);
   } catch (error) {
     errorResponse(res, error.message);
@@ -52,6 +54,42 @@ exports.deleteExercise = async (req, res) => {
     }
     await Exercise.delete(req.params.id);
     successResponse(res, null, 'Exercise deleted successfully');
+  } catch (error) {
+    errorResponse(res, error.message);
+  }
+};
+
+exports.getCorrectAnswer = async (req, res) => {
+  try {
+    const { exerciseId, userAnswer } = req.body;
+    const userId = req.user.id;
+
+    // Get the exercise
+    const exercise = await Exercise.findById(exerciseId);
+    if (!exercise) {
+      return errorResponse(res, 'Exercise not found', 404);
+    }
+
+    // Get AI evaluation
+    const { score, feedback } = await correctExercise({
+      ...exercise,
+      userAnswer
+    });
+
+    // Create performance log
+    const logId = await PerformanceLog.create({
+      userId,
+      exerciseId,
+      performance: score,
+      userInput: userAnswer,
+      correction: feedback
+    });
+
+    successResponse(res, {
+      score,
+      feedback,
+      logId
+    });
   } catch (error) {
     errorResponse(res, error.message);
   }

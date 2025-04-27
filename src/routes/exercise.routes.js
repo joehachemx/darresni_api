@@ -5,19 +5,22 @@ const {
   getAllExercises, 
   getExerciseById, 
   updateExercise, 
-  deleteExercise 
+  deleteExercise,
+  getCorrectAnswer
 } = require('../controllers/exercise.controller');
 const { 
   createExerciseSchema, 
-  updateExerciseSchema 
+  updateExerciseSchema,
+  correctAnswerSchema
 } = require('../validators/exercise.validator');
 const validate = require('../middlewares/validate.middleware');
 const auth = require('../middlewares/auth.middleware');
 const admin = require('../middlewares/admin.middleware');
 
-// Public routes
-router.get('/', getAllExercises);
-router.get('/:id', getExerciseById);
+// Auth Routes
+router.get('/', auth, getAllExercises);
+router.get('/:id', auth, getExerciseById);
+router.post('/correct', auth, validate(correctAnswerSchema), getCorrectAnswer);
 
 // Admin only routes
 router.post('/', auth, admin, validate(createExerciseSchema), createExercise);

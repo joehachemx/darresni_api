@@ -16,7 +16,13 @@ const updateExerciseSchema = Joi.object({
   exo_type: Joi.string()
 }).min(1);
 
+const correctAnswerSchema = Joi.object({
+  exerciseId: Joi.number().required(),
+  userAnswer: Joi.string().required()
+});
+
 module.exports = {
   createExerciseSchema,
-  updateExerciseSchema
+  updateExerciseSchema,
+  correctAnswerSchema
 }; 

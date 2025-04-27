@@ -5,21 +5,35 @@ class Exercise {
     const { title, description, content, difficulty, exo_type } = exerciseData;
     
     const [result] = await pool.execute(
-      `INSERT INTO exercises (title, description, content, difficulty, exo_type) 
+      `INSERT INTO exercise (title, description, content, difficulty, exo_type) 
        VALUES (?, ?, ?, ?, ?)`,
       [title, description, content, difficulty, exo_type]
     );
     return result.insertId;
   }
 
-  static async findAll() {
-    const [rows] = await pool.execute('SELECT * FROM exercises');
+  static async findAll(userId) {
+    const [rows] = await pool.execute('SELECT * FROM exercise');
+    
+    if (userId) {
+      const [attempts] = await pool.execute(
+        'SELECT exerciseId FROM PerformanceLogs WHERE userId = ?',
+        [userId]
+      );
+      const attemptedExerciseIds = new Set(attempts.map(a => a.exerciseId));
+      
+      return rows.map(exercise => ({
+        ...exercise,
+        hasAttempted: attemptedExerciseIds.has(exercise.id)
+      }));
+    }
+    
     return rows;
   }
 
   static async findById(id) {
     const [rows] = await pool.execute(
-      'SELECT * FROM exercises WHERE id = ?',
+      'SELECT * FROM exercise WHERE id = ?',
       [id]
     );
     return rows[0];
@@ -40,7 +54,7 @@ class Exercise {
     if (updates.length === 0) return null;
 
     values.push(id);
-    const query = `UPDATE exercises SET ${updates.join(', ')} WHERE id = ?`;
+    const query = `UPDATE exercise SET ${updates.join(', ')} WHERE id = ?`;
     
     await pool.execute(query, values);
     return this.findById(id);
@@ -48,7 +62,7 @@ class Exercise {
 
   static async delete(id) {
     await pool.execute(
-      'DELETE FROM exercises WHERE id = ?',
+      'DELETE FROM exercise WHERE id = ?',
       [id]
     );
   }

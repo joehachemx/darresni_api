@@ -5,7 +5,8 @@ const { successResponse, errorResponse } = require('../utils/response');
 
 const registerUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phoneNumber, dob } = req.body;
+    const { firstName, lastName, email, password, phoneNumber, dob, streak, isAdmin } = req.body;
+    console.log('Attempting to register user:', { email, firstName, lastName });
 
     const existingUser = await User.findByEmail(email);
     if (existingUser) {
@@ -13,20 +14,40 @@ const registerUser = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
+    console.log('Password hashed, attempting to create user...');
+    
+    const userId = await User.create({
       firstName,
       lastName,
       email,
       password: hashedPassword,
       phoneNumber,
-      dob
+      dob,
+      streak,
+      isAdmin
     });
+    
+    const user = await User.findById(userId);
+    console.log('User created successfully with ID:', userId);
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
-    successResponse(res, 'User registered successfully', { user, token });
+    successResponse(res, 'User registered successfully', { 
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        dob: user.dob,
+        streak: user.streak,
+        isAdmin: user.isAdmin
+      }, 
+      token 
+    });
   } catch (error) {
-    console.error('Error registering user:', error);
+    console.error('Detailed error registering user:', error);
+    console.error('Error stack:', error.stack);
     errorResponse(res, 'Failed to register user', 500);
   }
 };
@@ -45,7 +66,7 @@ const login = async (req, res) => {
       return errorResponse(res, 'Invalid credentials', 401);
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
     successResponse(res, 'Login successful', { 
       user: {
