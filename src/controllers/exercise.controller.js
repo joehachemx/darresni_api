@@ -2,6 +2,7 @@ const Exercise = require('../models/exercise.model');
 const { successResponse, errorResponse } = require('../utils/response');
 const PerformanceLog = require('../models/performanceLog.model');
 const { correctExercise } = require('../services/openai.service');
+const pool = require('../config/database');
 
 exports.createExercise = async (req, res) => {
   try {
@@ -76,6 +77,14 @@ exports.getCorrectAnswer = async (req, res) => {
       userAnswer
     });
 
+    // Check if user has answered today
+    const today = new Date().toISOString().split('T')[0];
+    const [todayLogs] = await pool.execute(
+      `SELECT * FROM PerformanceLogs 
+       WHERE userId = ? AND DATE(timestamp) = ?`,
+      [userId, today]
+    );
+
     // Create performance log
     const logId = await PerformanceLog.create({
       userId,
@@ -84,6 +93,14 @@ exports.getCorrectAnswer = async (req, res) => {
       userInput: userAnswer,
       correction: feedback
     });
+
+    // If this is the first answer today, increment streak
+    if (todayLogs.length === 0) {
+      await pool.execute(
+        `UPDATE Users SET streak = COALESCE(streak, 0) + 1 WHERE id = ?`,
+        [userId]
+      );
+    }
 
     successResponse(res, {
       score,
