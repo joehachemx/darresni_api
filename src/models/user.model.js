@@ -4,13 +4,13 @@ const bcrypt = require('bcryptjs');
 class User {
   static async create(userData) {
     try {
-      const { firstName, lastName, email, password, phoneNumber, dob, streak = 0, isAdmin = false } = userData;
-      console.log('Creating user with data:', { firstName, lastName, email, phoneNumber, dob, streak, isAdmin });
+      const { username, email, password, streak = 0, isAdmin = false } = userData;
+      console.log('Creating user with data:', { username, email, streak, isAdmin });
       
       const [result] = await pool.execute(
-        `INSERT INTO user (firstName, lastName, email, password, phoneNumber, dob, streak, isAdmin) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [firstName, lastName, email, password, phoneNumber, dob, streak, isAdmin]
+        `INSERT INTO user (username, email, password, streak, isAdmin) 
+         VALUES (?, ?, ?, ?, ?)`,
+        [username, email, password, streak, isAdmin]
       );
       console.log('User created successfully, ID:', result.insertId);
       return result.insertId;
@@ -45,7 +45,7 @@ class User {
   }
 
   static async updateProfile(id, updateData) {
-    const allowedFields = ['firstName', 'lastName', 'phoneNumber', 'dob'];
+    const allowedFields = ['username'];
     const updates = [];
     const values = [];
 

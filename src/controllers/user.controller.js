@@ -5,8 +5,8 @@ const { successResponse, errorResponse } = require('../utils/response');
 
 const registerUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phoneNumber, dob, streak, isAdmin } = req.body;
-    console.log('Attempting to register user:', { email, firstName, lastName });
+    const { username, email, password, streak, isAdmin } = req.body;
+    console.log('Attempting to register user:', { email, username });
 
     const existingUser = await User.findByEmail(email);
     if (existingUser) {
@@ -17,12 +17,9 @@ const registerUser = async (req, res) => {
     console.log('Password hashed, attempting to create user...');
     
     const userId = await User.create({
-      firstName,
-      lastName,
+      username,
       email,
       password: hashedPassword,
-      phoneNumber,
-      dob,
       streak,
       isAdmin
     });
@@ -35,11 +32,8 @@ const registerUser = async (req, res) => {
     successResponse(res, 'User registered successfully', { 
       user: {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        username: user.username,
         email: user.email,
-        phoneNumber: user.phoneNumber,
-        dob: user.dob,
         streak: user.streak,
         isAdmin: user.isAdmin
       }, 
@@ -71,8 +65,10 @@ const login = async (req, res) => {
     successResponse(res, 'Login successful', { 
       user: {
         id: user.id,
+        username: user.username,
         email: user.email,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin,
+        streak: user.streak
       }, 
       token 
     });
